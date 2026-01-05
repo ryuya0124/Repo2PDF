@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Viewer - Source to PDF</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+      border-bottom: 1px solid #30363d;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    
+    .logo svg {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .file-name {
+      font-weight: 600;
+      color: #ffffff;
+    }
+    
+    .file-meta {
+      font-size: 12px;
+      color: #8b949e;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    /* Zoom Controls */
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+    
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .zoom-btn:hover {
+      background: #30363d;
+      color: #ffffff;
+    }
+    
+    .zoom-value {
+      min-width: 50px;
+      text-align: center;
+      font-size: 13px;
+      color: #c9d1d9;
+      font-weight: 500;
+    }
+    
+    /* Action Buttons */
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    
+    .btn-primary {
+      background: #238636;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2ea043;
+    }
+    
+    .btn-secondary {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+    }
+    
+    .btn-secondary:hover {
+      background: #30363d;
+      color: #ffffff;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    
+    /* PDF Container */
+    .pdf-container {
+      flex: 1;
+      background: #161b22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 20px;
+    }
+    
+    .pdf-iframe {
+      background: #161b22;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease;
+      opacity: 0;
+    }
+    
+    .pdf-iframe.loaded {
+      opacity: 1;
+      background: white;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 320px;
+      background: #161b22;
+      border-left: 1px solid #30363d;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.2s ease;
+    }
+    
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+      border-left: none;
+    }
+    
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #30363d;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .info-section {
+      margin-bottom: 20px;
+    }
+    
+    .info-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    
+    .info-label {
+      color: #8b949e;
+      font-size: 13px;
+    }
+    
+    .info-value {
+      color: #e6edf3;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #58a6ff;
+    }
+    
+    .stat-value.success {
+      color: #3fb950;
+    }
+    
+    .stat-value.warning {
+      color: #f0883e;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    /* Skipped Files */
+    .skipped-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .skipped-item {
+      padding: 8px;
+      background: #21262d;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    
+    .skipped-path {
+      font-family: monospace;
+      font-size: 11px;
+      color: #e6edf3;
+      word-break: break-all;
+    }
+    
+    .skipped-reason {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    
+    /* Toggle Sidebar Button */
+    .toggle-sidebar {
+      position: absolute;
+      right: 320px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 48px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-right: none;
+      border-radius: 6px 0 0 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #8b949e;
+      transition: all 0.2s;
+    }
+    
+    .toggle-sidebar:hover {
+      background: #30363d;
+      color: #ffffff;
+    }
+    
+    .toggle-sidebar.collapsed {
+      right: 0;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #21262d;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #484f58;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6e7681;
+    }
+    
+    /* Loading State */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      color: #8b949e;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z"/>
+        </svg>
+        <span>Source to PDF</span>
+      </div>
+      <div class="file-info">
+        <span class="file-name" id="fileName">Loading...</span>
+        <span class="file-meta" id="fileMeta"></span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomOut()" title="縮小">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+        <span class="zoom-value" id="zoomValue">100%</span>
+        <button class="zoom-btn" onclick="zoomIn()" title="拡大">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="11" y1="8" x2="11" y2="14"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+      <button class="action-btn btn-secondary" onclick="toggleSidebar()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        情報
+      </button>
+      <button class="action-btn btn-primary" onclick="downloadPDF()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        ダウンロード
+      </button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="pdf-container" id="pdfContainer">
+      <div class="loading">
+        <div class="spinner"></div>
+        <span>PDFを読み込み中...</span>
+      </div>
+    </div>
+    
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">📊 ドキュメント情報</div>
+      <div class="sidebar-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value success" id="includedCount">-</div>
+            <div class="stat-label">含まれたファイル</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value warning" id="skippedCount">-</div>
+            <div class="stat-label">スキップ</div>
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <div class="info-section-title">詳細</div>
+          <div class="info-item">
+            <span class="info-label">リポジトリ</span>
+            <span class="info-value" id="repoName">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">生成日時</span>
+            <span class="info-value" id="generatedAt">-</span>
+          </div>
+        </div>
+        
+        <div class="info-section" id="skippedSection" style="display: none;">
+          <div class="info-section-title">スキップされたファイル</div>
+          <div class="skipped-list" id="skippedList"></div>
+        </div>
+        
+        <div class="info-section">
+          <div class="info-section-title">💡 ヒント</div>
+          <div style="font-size: 12px; color: #8b949e; line-height: 1.6;">
+            <p>• Ctrl + スクロールでズーム</p>
+            <p>• Ctrl + F でPDF内検索</p>
+            <p>• ダブルクリックでフィット切替</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    let zoom = 100;
+    let pdfId = null;
+    let metadata = null;
+    let sidebarVisible = true;
+    
+    // Parse URL parameters
+    const params = new URLSearchParams(window.location.search);
+    pdfId = params.get('pdfId');
+    try {
+      metadata = JSON.parse(decodeURIComponent(params.get('metadata') || '{}'));
+    } catch (e) {
+      metadata = {};
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!pdfId) {
+        document.getElementById('pdfContainer').innerHTML = '<div class="loading"><span>PDFが見つかりません</span></div>';
+        return;
+      }
+      
+      // Update UI with metadata
+      document.getElementById('fileName').textContent = metadata.filename || `source-${pdfId}.pdf`;
+      document.getElementById('fileMeta').textContent = metadata.repoName || '';
+      document.getElementById('repoName').textContent = metadata.repoName || '-';
+      document.getElementById('includedCount').textContent = metadata.stats?.included || 0;
+      document.getElementById('skippedCount').textContent = metadata.stats?.skipped || 0;
+      
+      if (metadata.generatedAt) {
+        document.getElementById('generatedAt').textContent = new Date(metadata.generatedAt).toLocaleString('ja-JP');
+      }
+      
+      // Show skipped files
+      if (metadata.skippedFiles && metadata.skippedFiles.length > 0) {
+        document.getElementById('skippedSection').style.display = 'block';
+        const list = document.getElementById('skippedList');
+        list.innerHTML = metadata.skippedFiles.slice(0, 20).map(f => `
+          <div class="skipped-item">
+            <div class="skipped-path">${f.path}</div>
+            <div class="skipped-reason">${f.reason}</div>
+          </div>
+        `).join('');
+        
+        if (metadata.skippedFiles.length > 20) {
+          list.innerHTML += `<div style="padding: 8px; color: #8b949e; font-size: 11px;">...他 ${metadata.skippedFiles.length - 20} ファイル</div>`;
+        }
+      }
+      
+      // Load PDF
+      loadPDF();
+    });
+    
+    function loadPDF() {
+      const container = document.getElementById('pdfContainer');
+      const iframe = document.createElement('iframe');
+      iframe.className = 'pdf-iframe';
+      iframe.src = `/api/pdf/${pdfId}`;
+      iframe.style.width = `${Math.min(container.clientWidth - 40, 1200) * (zoom / 100)}px`;
+      iframe.style.height = `${container.clientHeight - 40}px`;
+      iframe.style.border = 'none';
+      
+      iframe.onload = () => {
+        // 読み込み完了後にフェードイン
+        iframe.classList.add('loaded');
+        // ローディング表示を削除
+        const loading = container.querySelector('.loading');
+        if (loading) loading.remove();
+      };
+      
+      iframe.onerror = () => {
+        container.innerHTML = '<div class="loading"><span>PDFの読み込みに失敗しました</span></div>';
+      };
+      
+      // ローディング表示を維持しつつiframeを追加
+      container.appendChild(iframe);
+    }
+    
+    function updateZoom() {
+      document.getElementById('zoomValue').textContent = zoom + '%';
+      const iframe = document.querySelector('.pdf-iframe');
+      const container = document.getElementById('pdfContainer');
+      if (iframe && container) {
+        iframe.style.width = `${Math.min(container.clientWidth - 40, 1200) * (zoom / 100)}px`;
+        iframe.style.height = `${container.clientHeight - 40}px`;
+      }
+    }
+    
+    function zoomIn() {
+      if (zoom < 200) {
+        zoom += 25;
+        updateZoom();
+      }
+    }
+    
+    function zoomOut() {
+      if (zoom > 50) {
+        zoom -= 25;
+        updateZoom();
+      }
+    }
+    
+    function toggleSidebar() {
+      sidebarVisible = !sidebarVisible;
+      document.getElementById('sidebar').classList.toggle('collapsed', !sidebarVisible);
+    }
+    
+    function downloadPDF() {
+      const a = document.createElement('a');
+      a.href = `/api/pdf/${pdfId}/download`;
+      a.download = metadata.filename || `source-${pdfId}.pdf`;
+      a.click();
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault();
+          zoomIn();
+        } else if (e.key === '-') {
+          e.preventDefault();
+          zoomOut();
+        }
+      }
+    });
+    
+    // Mouse wheel zoom
+    document.getElementById('pdfContainer').addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          zoomIn();
+        } else {
+          zoomOut();
+        }
+      }
+    }, { passive: false });
+  </script>
+</body>
+</html>

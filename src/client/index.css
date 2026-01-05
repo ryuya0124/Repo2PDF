@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background: #0a0e14;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* 高コントラストスクロールバー */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #7d8590 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7d8590 0%, #6e7681 100%);
+  border-radius: 10px;
+  border: 2px solid #0d1117;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c9d1d9 0%, #8b949e 100%);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #c9d1d9;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6e7681 0%, #5c6370 100%);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8b949e 0%, #7d8590 100%);
+}
