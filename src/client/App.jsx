@@ -173,8 +173,11 @@ function AppContent() {
           skippedFiles: result.skippedFiles || [],
           generatedAt: new Date().toISOString()
         };
+        // メタデータをsessionStorageに保存（URLパラメータだと大きすぎてHTTP 431エラーになる）
+        const metadataKey = `pdf_metadata_${result.pdfId}`;
+        sessionStorage.setItem(metadataKey, JSON.stringify(metadata));
         // PDFビューアページを別タブで開く
-        const viewerUrl = `/viewer.html?pdfId=${result.pdfId}&metadata=${encodeURIComponent(JSON.stringify(metadata))}`;
+        const viewerUrl = `/viewer.html?pdfId=${result.pdfId}`;
         window.open(viewerUrl, '_blank');
       } else {
         alert(`Error: ${result.error}`);

@@ -535,10 +535,23 @@
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     pdfId = params.get('pdfId');
-    try {
-      metadata = JSON.parse(decodeURIComponent(params.get('metadata') || '{}'));
-    } catch (e) {
-      metadata = {};
+    
+    // メタデータをsessionStorageから読み込む（URLパラメータだと大きすぎる場合がある）
+    if (pdfId) {
+      const metadataKey = `pdf_metadata_${pdfId}`;
+      const savedMetadata = sessionStorage.getItem(metadataKey);
+      if (savedMetadata) {
+        try {
+          metadata = JSON.parse(savedMetadata);
+          // 読み込んだら削除（メモリ節約）
+          sessionStorage.removeItem(metadataKey);
+        } catch (e) {
+          console.error('Failed to parse metadata:', e);
+          metadata = {};
+        }
+      } else {
+        metadata = {};
+      }
     }
     
     // Initialize
