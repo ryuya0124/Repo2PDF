@@ -29,8 +29,14 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
   async function collectFiles(dirPath, relativePath = '') {
     const items = await fs.readdir(dirPath, { withFileTypes: true });
     for (const item of items) {
-      // 隠しフォルダ(.で始まる)と除外パターンをスキップ
-      if (item.name.startsWith('.') || excludePatterns.includes(item.name)) continue;
+      // 隠しフォルダ(.で始まる)をスキップ
+      if (item.name.startsWith('.')) continue;
+      
+      // 除外パターンをチェック（ディレクトリとファイルの両方）
+      if (excludePatterns.includes(item.name)) {
+        console.log(`⏭️  除外: ${item.name}`);
+        continue;
+      }
       
       const fullPath = path.join(dirPath, item.name);
       const relPath = path.join(relativePath, item.name);
