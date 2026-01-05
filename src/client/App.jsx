@@ -5,9 +5,11 @@ import { TreeItem } from './components/FileTree';
 import { FileViewer } from './components/FileViewer';
 import { PDFViewer } from './components/PDFViewer';
 import * as api from './api/client';
+import { I18nProvider, useTranslation } from './i18n.jsx';
 
-// Main App
-export default function App() {
+// Main App Component
+function AppContent() {
+  const { t, language, toggleLanguage } = useTranslation();
   const [repositories, setRepositories] = useState([]);
   const [token, setToken] = useState('');
   const [selectedRepo, setSelectedRepo] = useState(null);
@@ -47,7 +49,7 @@ export default function App() {
   const addRepository = async () => {
     if (!newRepo.url) return;
     setLoading(true);
-    setProgress({ message: 'リポジトリをクローン中...', current: 0, total: 0 });
+    setProgress({ message: t('messages.cloning'), current: 0, total: 0 });
     try {
       const result = await api.post('/repositories', newRepo);
       if (result.success) {
@@ -64,7 +66,7 @@ export default function App() {
   };
 
   const deleteRepository = async (id) => {
-    if (!confirm('Delete this repository?')) return;
+    if (!confirm(t('messages.deleteConfirm'))) return;
     await api.deleteRequest(`/repositories/${id}`);
     if (selectedRepo?.id === id) {
       setSelectedRepo(null);
@@ -125,7 +127,7 @@ export default function App() {
     setLoading(true);
     setSkippedFiles([]);
     const paths = Array.from(selectedFiles);
-    setProgress({ message: 'ファイルを収集中...', current: 0, total: 0, isIndeterminate: true });
+    setProgress({ message: t('messages.collecting'), current: 0, total: 0, isIndeterminate: true });
     
     // セッションID生成
     const sessionId = `pdf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -138,7 +140,7 @@ export default function App() {
           const progress = await api.get(`/pdf/progress/${sessionId}`);
           if (progress && !progress.error) {
             setProgress({
-              message: progress.message || 'PDF生成中...',
+              message: progress.message || t('messages.generating'),
               current: progress.current || 0,
               total: progress.total || 0,
               isIndeterminate: !progress.total || progress.total === 0
@@ -158,7 +160,7 @@ export default function App() {
       
       if (result.success) {
         const totalFiles = result.stats ? result.stats.included : 0;
-        setProgress({ message: 'PDF生成完了!', current: totalFiles, total: totalFiles, isIndeterminate: false });
+        setProgress({ message: t('messages.complete'), current: totalFiles, total: totalFiles, isIndeterminate: false });
         if (result.skippedFiles && result.skippedFiles.length > 0) {
           setSkippedFiles(result.skippedFiles);
         }
@@ -211,8 +213,8 @@ export default function App() {
                 <span className="text-white"><Icons.Code /></span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">Repo2PDF</h1>
-                <p className="text-xs text-[#8b949e]">Export code with syntax highlighting</p>
+                <h1 className="text-lg font-bold text-white">{t('header.title')}</h1>
+                <p className="text-xs text-[#8b949e]">{t('header.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -223,7 +225,15 @@ export default function App() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg transition-colors cursor-pointer font-medium"
             >
               <Icons.Plus />
-              <span>Add Repo</span>
+              <span>{t('buttons.addRepo')}</span>
+            </button>
+            <button
+              onClick={toggleLanguage}
+              className="p-2 rounded-lg hover:bg-[#30363d] border border-[#3d444d] hover:border-[#58a6ff] transition-all cursor-pointer text-[#c9d1d9] hover:text-white font-medium"
+              aria-label="Toggle Language"
+              title={language === 'ja' ? 'Switch to English' : '日本語に切り替え'}
+            >
+              {language === 'ja' ? 'EN' : 'JA'}
             </button>
             <button
               onClick={() => setShowSettings(true)}
@@ -241,7 +251,7 @@ export default function App() {
         {/* Sidebar */}
         <aside className="w-72 border-r border-[#3d444d] bg-[#0a0e14] flex flex-col">
           <div className="p-4 border-b border-[#3d444d]">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Repositories</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">{t('sidebar.repositories')}</h2>
           </div>
           <div className="flex-1 overflow-auto p-2">
             {repositories.length === 0 ? (
@@ -249,8 +259,8 @@ export default function App() {
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[#161b22] border border-[#3d444d] flex items-center justify-center">
                   <Icons.GitHub />
                 </div>
-                <p className="text-white text-sm font-medium">No repositories</p>
-                <p className="text-[#7d8590] text-xs mt-1">Add a repository to get started</p>
+                <p className="text-white text-sm font-medium">{t('sidebar.noRepositories')}</p>
+                <p className="text-[#7d8590] text-xs mt-1">{t('sidebar.noRepositoriesDesc')}</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -273,14 +283,14 @@ export default function App() {
                       <button
                         onClick={(e) => { e.stopPropagation(); pullRepository(repo.id); }}
                         className="p-1.5 rounded hover:bg-[#30363d] text-[#c9d1d9] hover:text-[#58a6ff] transition-colors cursor-pointer"
-                        title="Pull"
+                        title={t('buttons.pull')}
                       >
                         <Icons.RefreshCw />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteRepository(repo.id); }}
                         className="p-1.5 rounded hover:bg-[#30363d] text-[#c9d1d9] hover:text-[#f85149] transition-colors cursor-pointer"
-                        title="Delete"
+                        title={t('buttons.delete')}
                       >
                         <Icons.Trash />
                       </button>
@@ -301,7 +311,7 @@ export default function App() {
                 <div className="p-4 border-b border-[#3d444d] flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-white">{selectedRepo.name}</h3>
-                    <p className="text-sm text-[#c9d1d9]">{selectedFiles.size} files selected</p>
+                    <p className="text-sm text-[#c9d1d9]">{selectedFiles.size} {t('sidebar.filesSelected')}</p>
                   </div>
                   <button
                     onClick={() => setShowExcludeSettings(true)}
@@ -331,7 +341,7 @@ export default function App() {
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg transition-all cursor-pointer font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#238636]/50"
                   >
                     <Icons.FileText />
-                    <span>Export Entire Repo</span>
+                    <span>{t('buttons.exportEntireRepo')}</span>
                   </button>
                   <button
                     onClick={() => generatePDF('selected')}
@@ -339,7 +349,7 @@ export default function App() {
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#21262d] hover:bg-[#30363d] hover:border-[#58a6ff] text-white rounded-lg transition-all cursor-pointer font-semibold disabled:opacity-50 disabled:cursor-not-allowed border border-[#3d444d]"
                   >
                     <Icons.FileText />
-                    <span>Export Selected ({selectedFiles.size})</span>
+                    <span>{t('buttons.exportSelected')} ({selectedFiles.size})</span>
                   </button>
                 </div>
               </div>
@@ -354,8 +364,8 @@ export default function App() {
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#161b22] border border-[#3d444d] flex items-center justify-center text-[#7d8590]">
                         <Icons.Code />
                       </div>
-                      <p className="text-white font-medium">Select a file to preview</p>
-                      <p className="text-[#7d8590] text-sm mt-1">Click any file in the tree</p>
+                      <p className="text-white font-medium">{t('sidebar.selectFile')}</p>
+                      <p className="text-[#7d8590] text-sm mt-1">{t('sidebar.selectFileDesc')}</p>
                     </div>
                   </div>
                 )}
@@ -367,8 +377,8 @@ export default function App() {
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#161b22] border border-[#3d444d] flex items-center justify-center text-[#7d8590]">
                   <Icons.GitHub />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Select a Repository</h3>
-                <p className="text-[#c9d1d9]">Choose from the sidebar or add a new one</p>
+                <h3 className="text-xl font-bold text-white mb-2">{t('sidebar.selectRepository')}</h3>
+                <p className="text-[#c9d1d9]">{t('sidebar.selectRepositoryDesc')}</p>
               </div>
             </div>
           )}
@@ -376,10 +386,10 @@ export default function App() {
       </main>
 
       {/* Settings Modal */}
-      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Settings">
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title={t('modals.settings')}>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#e6edf3] mb-2">GitHub Token</label>
+            <label className="block text-sm font-medium text-[#e6edf3] mb-2">{t('modals.githubToken')}</label>
             <input
               type="password"
               placeholder="ghp_xxxxxxxxxxxx"
@@ -389,12 +399,12 @@ export default function App() {
             />
           </div>
           <p className="text-sm text-[#8b949e]">
-            Required for private repositories. Create a token with <code className="px-1.5 py-0.5 bg-[#2d333b] rounded text-[#f0883e]">repo</code> scope.
+            {t('modals.tokenRequired')} <code className="px-1.5 py-0.5 bg-[#2d333b] rounded text-[#f0883e]">repo</code> {t('modals.tokenScope')}
           </p>
           {token && (
             <div className="flex items-center gap-2 text-sm text-[#7ee787]">
               <Icons.Check />
-              <span>Token is set</span>
+              <span>{t('modals.tokenSet')}</span>
             </div>
           )}
           <div className="flex justify-end gap-3 pt-4">
@@ -402,23 +412,23 @@ export default function App() {
               onClick={() => setShowSettings(false)}
               className="px-4 py-2 rounded-lg hover:bg-[#2d333b] text-[#8b949e] transition-colors cursor-pointer"
             >
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button
               onClick={saveToken}
               className="px-4 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg transition-colors cursor-pointer font-medium"
             >
-              Save Token
+              {t('modals.saveToken')}
             </button>
           </div>
         </div>
       </Modal>
 
       {/* Add Repository Modal */}
-      <Modal isOpen={showAddRepo} onClose={() => setShowAddRepo(false)} title="Add Repository">
+      <Modal isOpen={showAddRepo} onClose={() => setShowAddRepo(false)} title={t('modals.addRepository')}>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#e6edf3] mb-2">Repository URL</label>
+            <label className="block text-sm font-medium text-[#e6edf3] mb-2">{t('modals.repositoryUrl')}</label>
             <input
               type="text"
               placeholder="https://github.com/user/repo.git"
@@ -428,7 +438,7 @@ export default function App() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#e6edf3] mb-2">Display Name (optional)</label>
+            <label className="block text-sm font-medium text-[#e6edf3] mb-2">{t('modals.displayName')}</label>
             <input
               type="text"
               placeholder="My Project"
@@ -447,11 +457,11 @@ export default function App() {
             >
               {newRepo.isPrivate && <Icons.Check />}
             </button>
-            <span className="text-[#e6edf3]">Private Repository</span>
+            <span className="text-[#e6edf3]">{t('modals.privateRepository')}</span>
           </label>
           {newRepo.isPrivate && !token && (
             <div className="p-3 bg-[#f0883e]/10 border border-[#f0883e]/30 rounded-lg text-[#f0883e] text-sm">
-              Set a GitHub token in settings to access private repositories.
+              {t('modals.privateRepoWarning')}
             </div>
           )}
           <div className="flex justify-end gap-3 pt-4">
@@ -466,7 +476,7 @@ export default function App() {
               disabled={loading || !newRepo.url}
               className="px-4 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg transition-colors cursor-pointer font-medium disabled:opacity-50"
             >
-              {loading ? 'Cloning...' : 'Add Repository'}
+              {loading ? t('modals.cloning') : t('modals.addRepository')}
             </button>
           </div>
         </div>
@@ -483,13 +493,13 @@ export default function App() {
       />
 
       {/* Exclude Patterns Modal */}
-      <Modal isOpen={showExcludeSettings} onClose={() => setShowExcludeSettings(false)} title="PDF除外設定">
+      <Modal isOpen={showExcludeSettings} onClose={() => setShowExcludeSettings(false)} title={t('modals.excludeSettings')}>
         <div className="space-y-4">
           <p className="text-sm text-[#8b949e]">
-            PDF生成時に除外するフォルダ/ファイル名を設定します。
+            {t('modals.excludeDescription')}
           </p>
           <div>
-            <label className="block text-sm font-medium text-[#e6edf3] mb-2">除外パターン</label>
+            <label className="block text-sm font-medium text-[#e6edf3] mb-2">{t('modals.excludePatterns')}</label>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {excludePatterns.map((pattern, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -517,11 +527,11 @@ export default function App() {
               className="mt-2 inline-flex items-center gap-2 px-3 py-2 bg-[#2d333b] hover:bg-[#3d444d] text-[#e6edf3] rounded-lg transition-colors cursor-pointer text-sm"
             >
               <Icons.Plus />
-              <span>パターンを追加</span>
+              <span>{t('buttons.addPattern')}</span>
             </button>
           </div>
           <div className="p-3 bg-[#1f6feb]/10 border border-[#1f6feb]/30 rounded-lg">
-            <p className="text-sm text-[#58a6ff] mb-2 font-medium">デフォルトパターン</p>
+            <p className="text-sm text-[#58a6ff] mb-2 font-medium">{t('modals.defaultPatterns')}</p>
             <div className="flex flex-wrap gap-2">
               {['node_modules', '.git', 'dist', 'build', '.next', '__pycache__', 'venv', 'target'].map(p => (
                 <span key={p} className="px-2 py-1 bg-[#0d1117] border border-[#2d333b] rounded text-xs text-[#8b949e]">
@@ -535,13 +545,13 @@ export default function App() {
               onClick={() => setShowExcludeSettings(false)}
               className="px-4 py-2 rounded-lg hover:bg-[#2d333b] text-[#8b949e] transition-colors cursor-pointer"
             >
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button
               onClick={saveExcludePatterns}
               className="px-4 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg transition-colors cursor-pointer font-medium"
             >
-              Save Settings
+              {t('modals.saveSettings')}
             </button>
           </div>
         </div>
@@ -553,7 +563,7 @@ export default function App() {
           <div className="bg-[#161b22] border border-[#3d444d] rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-6 h-6 border-2 border-[#238636] border-t-transparent rounded-full animate-spin" />
-              <span className="text-white font-semibold">{progress.message || 'Processing...'}</span>
+              <span className="text-white font-semibold">{progress.message || t('messages.processing')}</span>
             </div>
             <div className="space-y-2">
               <div className="w-full bg-[#21262d] rounded-full h-2.5 overflow-hidden border border-[#3d444d]">
@@ -566,8 +576,8 @@ export default function App() {
               </div>
               <p className="text-sm text-[#c9d1d9] text-center font-medium">
                 {progress.isIndeterminate || progress.total === 0 
-                  ? '処理中...' 
-                  : `${progress.current} / ${progress.total} ファイル`}
+                  ? t('messages.processing') 
+                  : `${progress.current} / ${progress.total} ${t('messages.files')}`}
               </p>
             </div>
           </div>
@@ -582,7 +592,7 @@ export default function App() {
               <svg className="w-5 h-5 text-[#f0883e]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <span className="text-[#f0883e] font-semibold text-sm">スキップされたファイル ({skippedFiles.length})</span>
+              <span className="text-[#f0883e] font-semibold text-sm">{t('messages.skippedFiles')} ({skippedFiles.length})</span>
             </div>
             <button
               onClick={() => setSkippedFiles([])}
@@ -604,5 +614,14 @@ export default function App() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap with I18nProvider
+export default function App() {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   );
 }

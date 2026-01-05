@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Viewer - Repo2PDF</title>
+  <title data-i18n="viewer.title">PDF Viewer - Repo2PDF</title>
   <style>
     * {
       margin: 0;
@@ -376,10 +376,10 @@
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z"/>
         </svg>
-        <span>Repo2PDF</span>
+        <span data-i18n="header.title">Repo2PDF</span>
       </div>
       <div class="file-info">
-        <span class="file-name" id="fileName">Loading...</span>
+        <span class="file-name" id="fileName" data-i18n="viewer.loading">Loading...</span>
         <span class="file-meta" id="fileMeta"></span>
       </div>
     </div>
@@ -402,20 +402,28 @@
           </svg>
         </button>
       </div>
-      <button class="action-btn btn-secondary" onclick="toggleSidebar()">
+      <button class="action-btn btn-secondary" onclick="toggleLanguage()" title="Toggle Language">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span id="langToggle">EN</span>
+      </button>
+      <button class="action-btn btn-secondary" onclick="toggleSidebar()" data-i18n="buttons.info">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
         情報
       </button>
-      <button class="action-btn btn-primary" onclick="downloadPDF()">
+      <button class="action-btn btn-primary" onclick="downloadPDF()" data-i18n="buttons.download">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        ダウンロード
+        <span data-i18n="buttons.download">ダウンロード</span>
       </button>
     </div>
   </header>
@@ -424,47 +432,47 @@
     <div class="pdf-container" id="pdfContainer">
       <div class="loading">
         <div class="spinner"></div>
-        <span>PDFを読み込み中...</span>
+        <span data-i18n="viewer.loading">PDFを読み込み中...</span>
       </div>
     </div>
     
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">📊 ドキュメント情報</div>
+      <div class="sidebar-header" data-i18n="viewer.documentInfo">📊 ドキュメント情報</div>
       <div class="sidebar-content">
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-value success" id="includedCount">-</div>
-            <div class="stat-label">含まれたファイル</div>
+            <div class="stat-label" data-i18n="viewer.includedFiles">含まれたファイル</div>
           </div>
           <div class="stat-card">
             <div class="stat-value warning" id="skippedCount">-</div>
-            <div class="stat-label">スキップ</div>
+            <div class="stat-label" data-i18n="viewer.skipped">スキップ</div>
           </div>
         </div>
         
         <div class="info-section">
-          <div class="info-section-title">詳細</div>
+          <div class="info-section-title" data-i18n="viewer.details">詳細</div>
           <div class="info-item">
-            <span class="info-label">リポジトリ</span>
+            <span class="info-label" data-i18n="viewer.repository">リポジトリ</span>
             <span class="info-value" id="repoName">-</span>
           </div>
           <div class="info-item">
-            <span class="info-label">生成日時</span>
+            <span class="info-label" data-i18n="viewer.generatedAt">生成日時</span>
             <span class="info-value" id="generatedAt">-</span>
           </div>
         </div>
         
         <div class="info-section" id="skippedSection" style="display: none;">
-          <div class="info-section-title">スキップされたファイル</div>
+          <div class="info-section-title" data-i18n="viewer.skippedFilesList">スキップされたファイル</div>
           <div class="skipped-list" id="skippedList"></div>
         </div>
         
         <div class="info-section">
-          <div class="info-section-title">💡 ヒント</div>
+          <div class="info-section-title" data-i18n="viewer.hints">💡 ヒント</div>
           <div style="font-size: 12px; color: #8b949e; line-height: 1.6;">
-            <p>• Ctrl + スクロールでズーム</p>
-            <p>• Ctrl + F でPDF内検索</p>
-            <p>• ダブルクリックでフィット切替</p>
+            <p data-i18n="viewer.hintZoom">• Ctrl + スクロールでズーム</p>
+            <p data-i18n="viewer.hintSearch">• Ctrl + F でPDF内検索</p>
+            <p data-i18n="viewer.hintFit">• ダブルクリックでフィット切替</p>
           </div>
         </div>
       </div>
@@ -472,6 +480,53 @@
   </div>
 
   <script>
+    // i18n translations
+    const translations = {
+      ja: {
+        'header.title': 'Repo2PDF',
+        'buttons.info': '情報',
+        'buttons.download': 'ダウンロード',
+        'viewer.title': 'PDF Viewer - Repo2PDF',
+        'viewer.loading': 'PDFを読み込み中...',
+        'viewer.notFound': 'PDFが見つかりません',
+        'viewer.loadError': 'PDFの読み込みに失敗しました',
+        'viewer.documentInfo': '📊 ドキュメント情報',
+        'viewer.includedFiles': '含まれたファイル',
+        'viewer.skipped': 'スキップ',
+        'viewer.details': '詳細',
+        'viewer.repository': 'リポジトリ',
+        'viewer.generatedAt': '生成日時',
+        'viewer.skippedFilesList': 'スキップされたファイル',
+        'viewer.hints': '💡 ヒント',
+        'viewer.hintZoom': '• Ctrl + スクロールでズーム',
+        'viewer.hintSearch': '• Ctrl + F でPDF内検索',
+        'viewer.hintFit': '• ダブルクリックでフィット切替',
+      },
+      en: {
+        'header.title': 'Repo2PDF',
+        'buttons.info': 'Info',
+        'buttons.download': 'Download',
+        'viewer.title': 'PDF Viewer - Repo2PDF',
+        'viewer.loading': 'Loading PDF...',
+        'viewer.notFound': 'PDF not found',
+        'viewer.loadError': 'Failed to load PDF',
+        'viewer.documentInfo': '📊 Document Info',
+        'viewer.includedFiles': 'Included Files',
+        'viewer.skipped': 'Skipped',
+        'viewer.details': 'Details',
+        'viewer.repository': 'Repository',
+        'viewer.generatedAt': 'Generated At',
+        'viewer.skippedFilesList': 'Skipped Files',
+        'viewer.hints': '💡 Hints',
+        'viewer.hintZoom': '• Ctrl + Scroll to zoom',
+        'viewer.hintSearch': '• Ctrl + F to search in PDF',
+        'viewer.hintFit': '• Double click to toggle fit',
+      }
+    };
+
+    // Language state
+    let currentLanguage = localStorage.getItem('language') || (navigator.language.startsWith('ja') ? 'ja' : 'en');
+    
     let zoom = 100;
     let pdfId = null;
     let metadata = null;
@@ -488,6 +543,9 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+      // Apply initial language
+      applyTranslations();
+      
       if (!pdfId) {
         document.getElementById('pdfContainer').innerHTML = '<div class="loading"><span>PDFが見つかりません</span></div>';
         return;
@@ -576,6 +634,31 @@
     function toggleSidebar() {
       sidebarVisible = !sidebarVisible;
       document.getElementById('sidebar').classList.toggle('collapsed', !sidebarVisible);
+    }
+    
+    function toggleLanguage() {
+      currentLanguage = currentLanguage === 'ja' ? 'en' : 'ja';
+      localStorage.setItem('language', currentLanguage);
+      applyTranslations();
+    }
+    
+    function applyTranslations() {
+      // Update all elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLanguage][key]) {
+          el.textContent = translations[currentLanguage][key];
+        }
+      });
+      
+      // Update language toggle button
+      const langToggle = document.getElementById('langToggle');
+      if (langToggle) {
+        langToggle.textContent = currentLanguage === 'ja' ? 'EN' : 'JA';
+      }
+      
+      // Update page title
+      document.title = translations[currentLanguage]['viewer.title'];
     }
     
     function downloadPDF() {
