@@ -211,7 +211,7 @@ export default function App() {
                 <span className="text-white"><Icons.Code /></span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">Source to PDF</h1>
+                <h1 className="text-lg font-bold text-white">Repo2PDF</h1>
                 <p className="text-xs text-[#8b949e]">Export code with syntax highlighting</p>
               </div>
             </div>
