@@ -35,7 +35,7 @@ router.post('/', async (c) => {
       url,
       isPrivate,
       path: repoPath,
-      excludePatterns: ['node_modules', '.git', 'dist', 'build', '.next', '.nuxt', '__pycache__', 'venv', '.venv', 'target', 'bin', 'obj'],
+      excludePatterns: ['node_modules', '.git', 'dist', 'build', '.next', '.nuxt', '__pycache__', 'venv', '.venv', 'target', 'bin', 'obj', 'pnpm-lock.yaml', 'package-lock.json', 'yarn.lock', 'bun.lockb'],
       addedAt: new Date().toISOString()
     });
     
