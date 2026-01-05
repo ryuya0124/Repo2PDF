@@ -1,4 +1,4 @@
-# Repo2PDF (source-to-pdf)
+# Repo2PDF
 
 ソースコードをPDFに変換して保存・共有するためのツールです。
 React, Hono, PDFKit, Vite, TailwindCSS などの技術を使用しています。
