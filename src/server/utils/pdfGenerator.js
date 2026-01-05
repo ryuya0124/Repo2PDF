@@ -25,7 +25,8 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
   async function collectFiles(dirPath, relativePath = '') {
     const items = await fs.readdir(dirPath, { withFileTypes: true });
     for (const item of items) {
-      if (item.name.startsWith('.git') || excludePatterns.includes(item.name)) continue;
+      // 隠しフォルダ(.で始まる)と除外パターンをスキップ
+      if (item.name.startsWith('.') || excludePatterns.includes(item.name)) continue;
       
       const fullPath = path.join(dirPath, item.name);
       const relPath = path.join(relativePath, item.name);
