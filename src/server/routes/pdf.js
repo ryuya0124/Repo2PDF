@@ -75,6 +75,18 @@ router.get('/:id', async (c) => {
     const pdfBuffer = await fs.readFile(pdfPath);
     c.header('Content-Type', 'application/pdf');
     c.header('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+    
+    // ビューア表示後、30分後に削除
+    setTimeout(async () => {
+      try {
+        await fs.unlink(pdfPath);
+        pdfMetadataMap.delete(id);
+        console.log(`🗑️  PDF削除: ${id}`);
+      } catch (error) {
+        // ファイルが既に削除されている場合は無視
+      }
+    }, 1800000); // 30分
+    
     return c.body(pdfBuffer);
   } catch {
     return c.json({ error: 'PDF not found' }, 404);
@@ -92,10 +104,48 @@ router.get('/:id/download', async (c) => {
     const pdfBuffer = await fs.readFile(pdfPath);
     c.header('Content-Type', 'application/pdf');
     c.header('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    
+    // ダウンロード後、5秒後に削除
+    setTimeout(async () => {
+      try {
+        await fs.unlink(pdfPath);
+        pdfMetadataMap.delete(id);
+        console.log(`🗑️  PDF削除 (ダウンロード後): ${id}`);
+      } catch (error) {
+        // ファイルが既に削除されている場合は無視
+      }
+    }, 5000);
+    
     return c.body(pdfBuffer);
   } catch {
     return c.json({ error: 'PDF not found' }, 404);
   }
 });
+
+// 定期的に古いPDFファイルをクリーンアップ（1時間ごと）
+setInterval(async () => {
+  try {
+    const files = await fs.readdir(DATA_DIR);
+    const now = Date.now();
+    
+    for (const file of files) {
+      if (file.endsWith('.pdf')) {
+        const filePath = path.join(DATA_DIR, file);
+        const stats = await fs.stat(filePath);
+        const age = now - stats.mtimeMs;
+        
+        // 1時間以上経過したPDFを削除
+        if (age > 3600000) {
+          await fs.unlink(filePath);
+          const pdfId = file.replace('.pdf', '');
+          pdfMetadataMap.delete(pdfId);
+          console.log(`🗑️  古いPDF削除: ${file}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('PDFクリーンアップエラー:', error);
+  }
+}, 3600000); // 1時間ごと
 
 export default router;

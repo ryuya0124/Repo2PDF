@@ -6,6 +6,10 @@ import { detectLanguage, isBinaryFile, isSupported } from '../../utils/languageM
 import { detectAndDecodeFile, normalizeLineEndings } from '../../utils/encoding.js';
 import { parseHighlightedCode } from './highlightParser.js';
 import { DATA_DIR } from '../config.js';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const FONT_PATH = path.join(__dirname, '../../../data/fonts/NotoSansJP-Regular.ttf');
 
 export async function generatePDF(repo, paths, scope, excludePatterns, progressMap, sessionId) {
   // 進捗送信ヘルパー
@@ -109,6 +113,13 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
     bufferPages: true
   });
   
+  // 日本語フォントを登録
+  try {
+    doc.registerFont('NotoSansJP', FONT_PATH);
+  } catch (error) {
+    console.warn('⚠️  日本語フォントの読み込みに失敗しました。標準フォントを使用します。', error.message);
+  }
+  
   const chunks = [];
   doc.on('data', chunk => chunks.push(chunk));
   
@@ -132,8 +143,8 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
     
     // Enhanced header with higher contrast
     doc.rect(50, 50, doc.page.width - 100, 40).fill('#0d1117');
-    doc.fontSize(12).fillColor('#ffffff').font('Helvetica-Bold').text(file.relativePath, 60, 60);
-    doc.fontSize(8).fillColor('#c9d1d9').font('Helvetica').text(
+    doc.fontSize(12).fillColor('#ffffff').font('NotoSansJP').text(file.relativePath, 60, 60);
+    doc.fontSize(8).fillColor('#c9d1d9').font('NotoSansJP').text(
       `Language: ${lang} | Modified: ${stat.mtime.toLocaleString('en-US')}`,
       60, 75
     );
@@ -182,7 +193,7 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
         }
         
         // Line number with higher contrast
-        doc.fontSize(8).fillColor('#24292e').font('Courier').text(
+        doc.fontSize(8).fillColor('#24292e').font('NotoSansJP').text(
           String(i + 1).padStart(String(codeLines.length).length, ' '),
           50, y, { width: lineNumberWidth - 10, align: 'right' }
         );
@@ -195,7 +206,7 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
           if (x > doc.page.width - 50) break;
           
           const text = segment.text.replace(/\t/g, '  ');
-          doc.fontSize(8).fillColor(segment.color).font('Courier').text(text, x, y, {
+          doc.fontSize(8).fillColor(segment.color).font('NotoSansJP').text(text, x, y, {
             continued: true,
             lineBreak: false
           });
@@ -206,7 +217,7 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
         y += 12;
       }
     } catch (error) {
-      doc.fontSize(10).fillColor('#d73a49').font('Helvetica').text(`ファイル読み込みエラー: ${error.message}`);
+      doc.fontSize(10).fillColor('#d73a49').font('NotoSansJP').text(`ファイル読み込みエラー: ${error.message}`);
       console.error(`❌ PDF生成エラー (${file.relativePath}):`, error);
     }
     
@@ -223,7 +234,7 @@ export async function generatePDF(repo, paths, scope, excludePatterns, progressM
   const pageCount = doc.bufferedPageRange().count;
   for (let i = 0; i < pageCount; i++) {
     doc.switchToPage(i);
-    doc.fontSize(8).fillColor('#24292e').font('Helvetica').text(
+    doc.fontSize(8).fillColor('#24292e').font('NotoSansJP').text(
       `ページ ${i + 1} / ${pageCount}`,
       50, doc.page.height - 30,
       { align: 'center', width: doc.page.width - 100 }
